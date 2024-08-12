@@ -1,27 +1,32 @@
 import React, { useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { postAdded } from "./postsSlice";
-import { nanoid } from "@reduxjs/toolkit";
+import { selectAllUsers } from "../users/userSlice";
 
 const AddPostForm = () => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [userId, setUserId] = useState("");
+
+  const users = useSelector(selectAllUsers);
 
   const dispatch = useDispatch();
 
   const onSavePostclicked = () => {
     if (title && content) {
-      dispatch(
-        postAdded({
-          id: nanoid(),
-          title,
-          content,
-        })
-      );
+      dispatch(postAdded(title, content, userId));
       setContent("");
       setTitle("");
     }
   };
+
+  const canSave = Boolean(title) && Boolean(content) && Boolean(userId);
+
+  const userOptions = users.map((u) => (
+    <option key={u.id} value={u.id}>
+      {u.name}
+    </option>
+  ));
 
   return (
     <section>
@@ -39,6 +44,17 @@ const AddPostForm = () => {
             onChange={(e) => setTitle(e.target.value)}
           />
           <br></br>
+          <label htmlFor="postAuthor">Author:</label>
+          <br></br>
+          <select
+            id="postAuthor"
+            value={userId}
+            onChange={(e) => setUserId(e.target.value)}
+          >
+            <option value=""></option>
+            {userOptions}
+          </select>
+          <br></br>
           <label htmlFor="postContent">Post Content:</label>
           <br></br>
           <input
@@ -50,7 +66,7 @@ const AddPostForm = () => {
             onChange={(e) => setContent(e.target.value)}
           />
           <br></br>
-          <button onClick={onSavePostclicked} type="button">
+          <button disabled={!canSave} onClick={onSavePostclicked} type="button">
             Submit
           </button>
         </form>
